@@ -5,7 +5,7 @@ Class {
 		'code',
 		'pos'
 	],
-	#category : 'PZ-Compiler'
+	#category : #'PZ-Compiler'
 }
 
 { #category : #accessing }
@@ -35,6 +35,11 @@ PzSourceCodeStream >> getNextChar [
 PzSourceCodeStream >> initialize [
 	code := String new.
 	pos := -1.
+]
+
+{ #category : #streaming }
+PzSourceCodeStream >> isEndOfText [
+	^(pos between: 1 and: code size) not.
 ]
 
 { #category : #streaming }
