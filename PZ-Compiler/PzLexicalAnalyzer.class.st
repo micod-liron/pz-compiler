@@ -50,27 +50,34 @@ PzLexicalAnalyzer class >> onlyIdentifierChars: aString [
 { #category : #accessing }
 PzLexicalAnalyzer >> code: aString [
 	codeStreamer code: aString.
+	readTokens removeAll.
+	ungetTokens removeAll.
 ]
 
 { #category : #streaming }
 PzLexicalAnalyzer >> getNextToken [
-	| tokenStr kindOf wasValid validType validStr |
-	ungetTokens isEmpty ifFalse: [ ^ungetTokens pop ].
+	| token tokenStr kindOf wasValid validType validStr |
+	self isEndOfText ifTrue: [ ^nil ].
+	ungetTokens ifNotEmpty: [
+		| ungetToken |
+		ungetToken := ungetTokens pop.
+		readTokens push: ungetToken.
+		^ungetToken
+	].
 	tokenStr := ''.
 	wasValid := false.
-	(codeStreamer isEndOfText) whileFalse: [ 
+	[codeStreamer isEndOfText] whileFalse: [ 
 		| char |
 		char := codeStreamer getNextChar.
 		tokenStr := tokenStr copyWith: char.
-		kindOf := PzLexicalAnalyzer classify: tokenStr.
+		kindOf := self class classify: tokenStr.
 		(kindOf ~= #invalid) ifTrue: [
 			wasValid := true.
 			validType := kindOf.
 			validStr := tokenStr.
 		]
 		ifFalse: [
-			wasValid ifTrue: [ 
-				| token |
+			wasValid ifTrue: [
 				codeStreamer ungetLastChar.
 				token := PzToken type: validType value: validStr row: 0 col: 0.
 				readTokens push: token.
@@ -78,7 +85,10 @@ PzLexicalAnalyzer >> getNextToken [
 			]
 		]
 	].
-	kindOf := PzLexicalAnalyzer classify: tokenStr. " TODO"
+	kindOf := self class classify: tokenStr.
+	token := PzToken type: kindOf value: tokenStr row: 0 col: 0.
+	readTokens push: token.
+	^token.
 ]
 
 { #category : #initialization }
@@ -88,7 +98,13 @@ PzLexicalAnalyzer >> initialize [
 	ungetTokens := Stack new.
 ]
 
+{ #category : #testing }
+PzLexicalAnalyzer >> isEndOfText [
+	^ungetTokens isEmpty and: [ codeStreamer isEndOfText ]
+]
+
 { #category : #streaming }
 PzLexicalAnalyzer >> ungetLastToken [
-	^nil.
+	readTokens ifEmpty: [ ^nil ].
+	^ungetTokens push: readTokens pop.
 ]
