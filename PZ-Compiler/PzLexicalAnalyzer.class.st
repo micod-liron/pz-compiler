@@ -13,6 +13,14 @@ Class {
 	#category : #'PZ-Compiler'
 }
 
+{ #category : #testing }
+PzLexicalAnalyzer class >> classify: aString [
+	(self isIdentifier: aString) ifTrue: [ ^#identifier ].
+	(self isKeyword: aString) ifTrue: [ ^#keyword ].
+	(self isSpecialSymbol: aString) ifTrue: [ ^#specialSymbol ].
+	^#invalid.
+]
+
 { #category : #'class initialization' }
 PzLexicalAnalyzer class >> initialize [ 
 	keywords := #('public' 'private' 'class' 'int' 'string' 'bool' 'if' 'while' 'true' 'false').
@@ -21,17 +29,17 @@ PzLexicalAnalyzer class >> initialize [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isIdentifier: aString [
-	^aString isNotNil and: [ aString isNotEmpty ].
+	^(self isKeyword: aString) not & aString isNotNil & aString isNotEmpty & (aString first = $_ | (aString first isDigit not & aString first isAlphaNumeric)) & (aString size > 1 ifTrue: [self onlyIdentifierChars: aString] ifFalse: [true]).
 ]
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isKeyword: aString [
-	^keywords contains: aString.
+	^keywords includes: aString.
 ]
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isSpecialSymbol: aString [
-	^specialSymbols contains: aString.
+	^specialSymbols includes: aString.
 ]
 
 { #category : #testing }
@@ -46,7 +54,31 @@ PzLexicalAnalyzer >> code: aString [
 
 { #category : #streaming }
 PzLexicalAnalyzer >> getNextToken [
-	^ 'token'.
+	| tokenStr kindOf wasValid validType validStr |
+	ungetTokens isEmpty ifFalse: [ ^ungetTokens pop ].
+	tokenStr := ''.
+	wasValid := false.
+	(codeStreamer isEndOfText) whileFalse: [ 
+		| char |
+		char := codeStreamer getNextChar.
+		tokenStr := tokenStr copyWith: char.
+		kindOf := PzLexicalAnalyzer classify: tokenStr.
+		(kindOf ~= #invalid) ifTrue: [
+			wasValid := true.
+			validType := kindOf.
+			validStr := tokenStr.
+		]
+		ifFalse: [
+			wasValid ifTrue: [ 
+				| token |
+				codeStreamer ungetLastChar.
+				token := PzToken type: validType value: validStr row: 0 col: 0.
+				readTokens push: token.
+				^token.
+			]
+		]
+	].
+	kindOf := PzLexicalAnalyzer classify: tokenStr. " TODO"
 ]
 
 { #category : #initialization }
