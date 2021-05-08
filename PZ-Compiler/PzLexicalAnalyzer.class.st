@@ -66,6 +66,8 @@ PzLexicalAnalyzer >> getNextToken [
 	].
 	tokenStr := ''.
 	wasValid := false.
+	[codeStreamer isEndOfText not and: [codeStreamer getNextChar isSeparator]] whileTrue.
+	codeStreamer ungetLastChar.
 	[codeStreamer isEndOfText] whileFalse: [ 
 		| char |
 		char := codeStreamer getNextChar.
