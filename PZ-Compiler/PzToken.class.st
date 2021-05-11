@@ -36,7 +36,7 @@ PzToken >> col: anObject [
 
 { #category : #printing }
 PzToken >> printString [
-	^ type asString,' ',value printString,' ',row printString,':',col printString.
+	^ self className,' ',type asString,' ',value printString,' ',row printString,':',col printString.
 ]
 
 { #category : #accessing }

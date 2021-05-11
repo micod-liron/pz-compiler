@@ -3,7 +3,9 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'code',
-		'pos'
+		'pos',
+		'row',
+		'col'
 	],
 	#category : #'PZ-Compiler'
 }
@@ -18,6 +20,8 @@ PzSourceCodeStream >> code [
 PzSourceCodeStream >> code: aString [
 	code := aString.
 	pos := aString isEmpty ifTrue: [0] ifFalse: [1].
+	row := 1.
+	col := 1.
 ]
 
 { #category : #streaming }
@@ -26,6 +30,9 @@ PzSourceCodeStream >> getNextChar [
 		ifTrue: [ | ret |
 			ret := code at: pos.
 			pos := pos + 1.
+			(code at: pos-1) = Character cr
+				ifTrue: [ row := row+1. col := 1 ]
+				ifFalse: [ col := col+1 ].
 			^ret
 		]
 		ifFalse: [ ^nil ]
@@ -33,8 +40,9 @@ PzSourceCodeStream >> getNextChar [
 
 { #category : #initialization }
 PzSourceCodeStream >> initialize [
-	code := String new.
-	pos := -1.
+	pos := 0.
+	row := 0.
+	col:= 0.
 ]
 
 { #category : #streaming }
