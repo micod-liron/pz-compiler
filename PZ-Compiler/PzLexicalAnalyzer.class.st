@@ -7,8 +7,8 @@ Class {
 		'ungetTokens'
 	],
 	#classVars : [
-		'keywords',
-		'specialSymbols'
+		'Keywords',
+		'SpecialSymbols'
 	],
 	#category : #'PZ-Compiler'
 }
@@ -23,8 +23,8 @@ PzLexicalAnalyzer class >> classify: aString [
 
 { #category : #'class initialization' }
 PzLexicalAnalyzer class >> initialize [ 
-	keywords := #('public' 'private' 'class' 'int' 'string' 'bool' 'if' 'while' 'true' 'false').
-	specialSymbols := #('(' ')' '[' ']' '{' '}' '&&' '||' '+' '-' '*' '/' '%' '.' ',').
+	Keywords := #('public' 'private' 'class' 'int' 'string' 'bool' 'if' 'while' 'true' 'false').
+	SpecialSymbols := #('(' ')' '[' ']' '{' '}' '&&' '||' '+' '-' '*' '/' '%' '.' ',').
 ]
 
 { #category : #testing }
@@ -34,12 +34,12 @@ PzLexicalAnalyzer class >> isIdentifier: aString [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isKeyword: aString [
-	^keywords includes: aString.
+	^Keywords includes: aString.
 ]
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isSpecialSymbol: aString [
-	^specialSymbols includes: aString.
+	^SpecialSymbols includes: aString.
 ]
 
 { #category : #testing }
