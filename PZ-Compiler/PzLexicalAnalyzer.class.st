@@ -43,6 +43,11 @@ PzLexicalAnalyzer class >> isSpecialSymbol: aString [
 ]
 
 { #category : #testing }
+PzLexicalAnalyzer class >> isValidToken: aString [
+	^(self class isIdentifier: aString) or: [(self class isKeyword: aString) or: [self class isSpecialSymbol: aString]]
+]
+
+{ #category : #testing }
 PzLexicalAnalyzer class >> onlyIdentifierChars: aString [
 	^aString allSatisfy: [ :c | c = $_ or: [ c isAlphaNumeric ]].
 ]
@@ -68,10 +73,18 @@ PzLexicalAnalyzer >> getNextToken [
 
 { #category : #private }
 PzLexicalAnalyzer >> getTokenFromStream [
-	| char row col type |
+	| char row col type tokenString concat |
 	self removeWhitespace.
 	codeStreamer isEndOfText ifTrue: [ ^nil ].
-	"TODO: repeatedly get and classify"
+	row := codeStreamer row.
+	col := codeStreamer col.
+	concat := String new writeStream.
+	char := codeStreamer getNextChar.
+	concat nextPut: codeStreamer getNextChar.
+	[codeStreamer isEndOfText or: [ self class isValidToken: concat contents]]
+		whileFalse: [ tokenString := concat contents. concat nextPut: codeStreamer getNextChar ].
+	"TODO: decide when to put token back"
+	
 	
 ]
 
@@ -85,11 +98,6 @@ PzLexicalAnalyzer >> initialize [
 { #category : #testing }
 PzLexicalAnalyzer >> isEndOfText [
 	^ungetTokens isEmpty and: [ codeStreamer isEndOfText ]
-]
-
-{ #category : #testing }
-PzLexicalAnalyzer >> isValidToken: aString [
-	^(self class isIdentifier: aString) or: [(self class isKeyword: aString) or: [self class isSpecialSymbol: aString]]
 ]
 
 { #category : #removing }
