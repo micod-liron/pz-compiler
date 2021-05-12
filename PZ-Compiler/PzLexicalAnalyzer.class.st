@@ -68,16 +68,11 @@ PzLexicalAnalyzer >> getNextToken [
 
 { #category : #private }
 PzLexicalAnalyzer >> getTokenFromStream [
-	| char row col |
-	row := codeStreamer col.
-	col := codeStreamer row.
-	char := codeStreamer getNextChar.
-	[ char isSeparator & codeStreamer isEndOfText not ] whileTrue: [
-		row := codeStreamer row.
-		col := codeStreamer col.
-		char := codeStreamer getNextChar
-	].
+	| char row col type |
+	self removeWhitespace.
 	codeStreamer isEndOfText ifTrue: [ ^nil ].
+	"TODO: repeatedly get and classify"
+	
 ]
 
 { #category : #initialization }
@@ -90,6 +85,18 @@ PzLexicalAnalyzer >> initialize [
 { #category : #testing }
 PzLexicalAnalyzer >> isEndOfText [
 	^ungetTokens isEmpty and: [ codeStreamer isEndOfText ]
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer >> isValidToken: aString [
+	^(self class isIdentifier: aString) or: [(self class isKeyword: aString) or: [self class isSpecialSymbol: aString]]
+]
+
+{ #category : #removing }
+PzLexicalAnalyzer >> removeWhitespace [
+	| char |
+	[ codeStreamer isEndOfText not and: [char := codeStreamer getNextChar. char isSeparator]] whileTrue.
+	char isSeparator ifFalse: [ codeStreamer ungetLastChar ]
 ]
 
 { #category : #streaming }
