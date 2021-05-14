@@ -24,6 +24,18 @@ PzSourceCodeStream >> code: aString [
 	col := 1.
 ]
 
+{ #category : #accessing }
+PzSourceCodeStream >> col [
+
+	^ col
+]
+
+{ #category : #accessing }
+PzSourceCodeStream >> col: anObject [
+
+	col := anObject
+]
+
 { #category : #streaming }
 PzSourceCodeStream >> getNextChar [
 	(pos between: 1 and: code size)
@@ -48,6 +60,18 @@ PzSourceCodeStream >> initialize [
 { #category : #streaming }
 PzSourceCodeStream >> isEndOfText [
 	^(pos between: 1 and: code size) not.
+]
+
+{ #category : #accessing }
+PzSourceCodeStream >> row [
+
+	^ row
+]
+
+{ #category : #accessing }
+PzSourceCodeStream >> row: anObject [
+
+	row := anObject
 ]
 
 { #category : #streaming }

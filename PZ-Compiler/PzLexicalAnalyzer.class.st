@@ -29,7 +29,13 @@ PzLexicalAnalyzer class >> initialize [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isIdentifier: aString [
-	^(self isKeyword: aString) not & aString isNotNil & aString isNotEmpty & (aString first = $_ | (aString first isDigit not & aString first isAlphaNumeric)) & (aString size > 1 ifTrue: [self onlyIdentifierChars: aString] ifFalse: [true]).
+	^aString isEmpty not & (self isKeyword: aString) not & aString isNotNil & aString isNotEmpty & (aString first = $_ | (aString first isDigit not & aString first isAlphaNumeric)) & (aString size > 1 ifTrue: [self onlyIdentifierChars: aString] ifFalse: [true]).
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer class >> isIncomplete: aString [
+	aString first = $" ifTrue: [^aString size > 1 and: [aString last ~= $"]].
+	^false.
 ]
 
 { #category : #testing }
@@ -44,7 +50,7 @@ PzLexicalAnalyzer class >> isSpecialSymbol: aString [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isValidToken: aString [
-	^(self class isIdentifier: aString) or: [(self class isKeyword: aString) or: [self class isSpecialSymbol: aString]]
+	^(self isIdentifier: aString) or: [(self isKeyword: aString) or: [self isSpecialSymbol: aString]]
 ]
 
 { #category : #testing }
@@ -73,19 +79,26 @@ PzLexicalAnalyzer >> getNextToken [
 
 { #category : #private }
 PzLexicalAnalyzer >> getTokenFromStream [
-	| char row col type tokenString concat |
+	| row col tokenString concat incomplete nextIsInvalid token|
 	self removeWhitespace.
 	codeStreamer isEndOfText ifTrue: [ ^nil ].
 	row := codeStreamer row.
 	col := codeStreamer col.
 	concat := String new writeStream.
-	char := codeStreamer getNextChar.
-	concat nextPut: codeStreamer getNextChar.
-	[codeStreamer isEndOfText or: [ self class isValidToken: concat contents]]
-		whileFalse: [ tokenString := concat contents. concat nextPut: codeStreamer getNextChar ].
-	"TODO: decide when to put token back"
-	
-	
+	incomplete := false. "(self class isIncomplete: concat contents)"
+	nextIsInvalid := false. "(self class isValidToken: tokenString) ~= true and: [(self class isValidToken: concat contents) ~= false]"
+	[codeStreamer isEndOfText not and: [incomplete or: [nextIsInvalid not]]]
+		whileTrue: [
+			tokenString := concat contents.
+			Transcript show: tokenString; cr.
+			concat nextPut: codeStreamer getNextChar.
+			incomplete := self class isIncomplete: concat contents.
+			nextIsInvalid := (self class isValidToken: tokenString) = true and: [(self class isValidToken: concat contents) = false].
+	].
+	nextIsInvalid ifTrue: [codeStreamer ungetLastChar].
+	token := PzToken type: (self class classify: tokenString) value: tokenString row: row col: col.
+	readTokens push: token.
+	^token.
 ]
 
 { #category : #initialization }
