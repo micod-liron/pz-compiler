@@ -36,7 +36,7 @@ PzLexicalAnalyzer class >> isDouble: aString [
 	digits := 0.
 	dots := 0.
 	aString do: [ :c |
-		c isDigit: [digits := digits+1].
+		c isDigit ifTrue: [digits := digits+1].
 		c = $. ifTrue: [dots := dots+1].
 	].
 	^dots = 1 and: [digits = (aString size-1)]
@@ -50,6 +50,7 @@ PzLexicalAnalyzer class >> isIdentifier: aString [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isIncomplete: aString [
+	(aString isNil or: [aString isEmpty]) ifTrue: [^false].
 	aString first = $" ifTrue: [^aString size > 1 and: [aString last ~= $"]].
 	^false.
 ]
@@ -76,7 +77,7 @@ PzLexicalAnalyzer class >> isString: aString [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isValidToken: aString [
-	^(self isIdentifier: aString) or: [(self isKeyword: aString) or: [self isSpecialSymbol: aString]]
+	^(self classify: aString) ~= #invalid.
 ]
 
 { #category : #testing }
@@ -115,9 +116,8 @@ PzLexicalAnalyzer >> getTokenFromStream [
 		whileTrue: [
 			tokenString := concat contents.
 			concat nextPut: codeStreamer getNextChar.
-			incomplete := self class isIncomplete: concat contents.
+			incomplete := self class isIncomplete: tokenString.
 			nextIsInvalid := (self class isValidToken: tokenString) and: [(self class isValidToken: concat contents) not].
-			Transcript show: tokenString,' ',concat contents,' ',incomplete printString,' ',nextIsInvalid printString; cr.
 	].
 	nextIsInvalid ifTrue: [codeStreamer ungetLastChar].
 	codeStreamer isEndOfText ifTrue: [tokenString := concat contents].
