@@ -22,6 +22,13 @@ PzLexicalAnalyzerTest >> testClassify [
 ]
 
 { #category : #tests }
+PzLexicalAnalyzerTest >> testIsBlockComment [
+	self assert: (lexer class isBlockComment: '/*block comment*/').
+	self assert: (lexer class isBlockComment: '/*block') not.
+	self assert: (lexer class isBlockComment: 'comment*/') not.
+]
+
+{ #category : #tests }
 PzLexicalAnalyzerTest >> testIsDouble [
 	self assert: (lexer class isDouble: '42.42').
 	self assert: (lexer class isDouble: '42') not.
@@ -62,6 +69,11 @@ PzLexicalAnalyzerTest >> testIsKeyword [
 ]
 
 { #category : #tests }
+PzLexicalAnalyzerTest >> testIsLineComment [
+	self assert: (lexer class isLineComment: '//hello').
+]
+
+{ #category : #tests }
 PzLexicalAnalyzerTest >> testIsSpecialSymbol [
 	self assert: (PzLexicalAnalyzer isSpecialSymbol: '&&') equals: true.
 	self assert: (PzLexicalAnalyzer isSpecialSymbol: '^') equals: false.
@@ -80,9 +92,12 @@ PzLexicalAnalyzerTest >> testIsValidToken [
 	self assert: (lexer class isValidToken: '42').
 	self assert: (lexer class isValidToken: '42.42').
 	self assert: (lexer class isValidToken: '(').
+	self assert: (lexer class isValidToken: '// abc').
+	self assert: (lexer class isValidToken: '/*abc*/').
 	self assert: (lexer class isValidToken: '"abc"').
 	self assert: (lexer class isValidToken: '"abc') not.
 	self assert: (lexer class isValidToken: '42..42') not.
+	self assert: (lexer class isValidToken: '/*abc') not.
 ]
 
 { #category : #tests }

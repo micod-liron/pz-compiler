@@ -21,6 +21,8 @@ PzLexicalAnalyzer class >> classify: aString [
 	(self isString: aString) ifTrue: [^#string].
 	(self isInteger: aString) ifTrue: [^#integer].
 	(self isDouble: aString) ifTrue: [^#double].
+	(self isLineComment: aString) ifTrue: [^#lineComment].
+	(self isBlockComment: aString) ifTrue: [^#blockComment].
 	^#invalid.
 ]
 
@@ -28,6 +30,12 @@ PzLexicalAnalyzer class >> classify: aString [
 PzLexicalAnalyzer class >> initialize [ 
 	Keywords := #('public' 'private' 'class' 'int' 'string' 'bool' 'if' 'while' 'true' 'false').
 	SpecialSymbols := #('(' ')' '[' ']' '{' '}' '&&' '||' '+' '-' '*' '/' '%' '.' ',').
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer class >> isBlockComment: aString [
+	(aString isNil or: [aString isEmpty]) ifTrue: [^false].
+	^(aString beginsWith: '/*') and: [(aString endsWith: '*/') and: [aString size >= 4]]
 ]
 
 { #category : #testing }
@@ -52,6 +60,8 @@ PzLexicalAnalyzer class >> isIdentifier: aString [
 PzLexicalAnalyzer class >> isIncomplete: aString [
 	(aString isNil or: [aString isEmpty]) ifTrue: [^false].
 	aString first = $" ifTrue: [^aString size > 1 and: [aString last ~= $"]].
+	aString first = $/ ifTrue: [^true].
+	((aString beginsWith: '/*') and: [(self isBlockComment: aString) not]) ifTrue: [^true].
 	^false.
 ]
 
@@ -63,6 +73,12 @@ PzLexicalAnalyzer class >> isInteger: aString [
 { #category : #testing }
 PzLexicalAnalyzer class >> isKeyword: aString [
 	^Keywords includes: aString.
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer class >> isLineComment: aString [ 
+	(aString isNil or: [aString isEmpty]) ifTrue: [^false].
+	^(aString beginsWith: '//') and: [aString last ~= Character cr]
 ]
 
 { #category : #testing }
