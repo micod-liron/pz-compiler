@@ -4,51 +4,23 @@ Class {
 	#instVars : [
 		'type',
 		'value',
-		'valueString',
-		'row',
-		'col'
+		'valueString'
 	],
 	#category : #'PZ-Compiler'
 }
 
 { #category : #initialization }
-PzToken class >> type: aType value: aValue row: aRow col: aCol [
+PzToken class >> type: aType value: aValue [
 	^ self new
 		type: aType;
 		value: aValue;
 		valueString: aValue printString;
-		row: aRow;
-		col: aCol;
 		yourself.
-]
-
-{ #category : #accessing }
-PzToken >> col [
-
-	^ col
-]
-
-{ #category : #accessing }
-PzToken >> col: anObject [
-
-	col := anObject
 ]
 
 { #category : #printing }
 PzToken >> printString [
-	^ self className,' ',type asString,' ',value printString,' ',row printString,':',col printString.
-]
-
-{ #category : #accessing }
-PzToken >> row [
-
-	^ row
-]
-
-{ #category : #accessing }
-PzToken >> row: anObject [
-
-	row := anObject
+	^ self className,' ',type asString,' ',value printString.
 ]
 
 { #category : #accessing }
@@ -61,12 +33,6 @@ PzToken >> type [
 PzToken >> type: anObject [
 
 	type := anObject
-]
-
-{ #category : #accessing }
-PzToken >> value1 [
-
-	^ value
 ]
 
 { #category : #accessing }

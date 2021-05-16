@@ -18,6 +18,9 @@ PzLexicalAnalyzer class >> classify: aString [
 	(self isIdentifier: aString) ifTrue: [ ^#identifier ].
 	(self isKeyword: aString) ifTrue: [ ^#keyword ].
 	(self isSpecialSymbol: aString) ifTrue: [ ^#specialSymbol ].
+	(self isString: aString) ifTrue: [^#string].
+	(self isInteger: aString) ifTrue: [^#integer].
+	(self isDouble: aString) ifTrue: [^#double].
 	^#invalid.
 ]
 
@@ -28,14 +31,32 @@ PzLexicalAnalyzer class >> initialize [
 ]
 
 { #category : #testing }
+PzLexicalAnalyzer class >> isDouble: aString [
+	| digits dots |
+	digits := 0.
+	dots := 0.
+	aString do: [ :c |
+		c isDigit: [digits := digits+1].
+		c = $. ifTrue: [dots := dots+1].
+	].
+	^dots = 1 and: [digits = (aString size-1)]
+]
+
+{ #category : #testing }
 PzLexicalAnalyzer class >> isIdentifier: aString [
-	^aString isEmpty not & (self isKeyword: aString) not & aString isNotNil & aString isNotEmpty & (aString first = $_ | (aString first isDigit not & aString first isAlphaNumeric)) & (aString size > 1 ifTrue: [self onlyIdentifierChars: aString] ifFalse: [true]).
+	(aString isNil | aString isEmpty) ifTrue: [^false].
+	^(self isKeyword: aString) not & (aString first = $_ | (aString first isDigit not & aString first isAlphaNumeric)) & (aString size > 1 ifTrue: [self onlyIdentifierChars: aString] ifFalse: [true]).
 ]
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isIncomplete: aString [
 	aString first = $" ifTrue: [^aString size > 1 and: [aString last ~= $"]].
 	^false.
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer class >> isInteger: aString [
+	^aString isAllDigits.
 ]
 
 { #category : #testing }
@@ -46,6 +67,11 @@ PzLexicalAnalyzer class >> isKeyword: aString [
 { #category : #testing }
 PzLexicalAnalyzer class >> isSpecialSymbol: aString [
 	^SpecialSymbols includes: aString.
+]
+
+{ #category : #testing }
+PzLexicalAnalyzer class >> isString: aString [
+	^(aString isNotEmpty) and: [aString first = $" and: [(aString size > 1) and: [aString last = $"]]].
 ]
 
 { #category : #testing }
@@ -79,24 +105,23 @@ PzLexicalAnalyzer >> getNextToken [
 
 { #category : #private }
 PzLexicalAnalyzer >> getTokenFromStream [
-	| row col tokenString concat incomplete nextIsInvalid token|
+	| tokenString concat incomplete nextIsInvalid token|
 	self removeWhitespace.
 	codeStreamer isEndOfText ifTrue: [ ^nil ].
-	row := codeStreamer row.
-	col := codeStreamer col.
 	concat := String new writeStream.
-	incomplete := false. "(self class isIncomplete: concat contents)"
-	nextIsInvalid := false. "(self class isValidToken: tokenString) ~= true and: [(self class isValidToken: concat contents) ~= false]"
+	incomplete := false.
+	nextIsInvalid := false.
 	[codeStreamer isEndOfText not and: [incomplete or: [nextIsInvalid not]]]
 		whileTrue: [
 			tokenString := concat contents.
-			Transcript show: tokenString; cr.
 			concat nextPut: codeStreamer getNextChar.
 			incomplete := self class isIncomplete: concat contents.
-			nextIsInvalid := (self class isValidToken: tokenString) = true and: [(self class isValidToken: concat contents) = false].
+			nextIsInvalid := (self class isValidToken: tokenString) and: [(self class isValidToken: concat contents) not].
+			Transcript show: tokenString,' ',concat contents,' ',incomplete printString,' ',nextIsInvalid printString; cr.
 	].
 	nextIsInvalid ifTrue: [codeStreamer ungetLastChar].
-	token := PzToken type: (self class classify: tokenString) value: tokenString row: row col: col.
+	codeStreamer isEndOfText ifTrue: [tokenString := concat contents].
+	token := PzToken type: (self class classify: tokenString) value: tokenString.
 	readTokens push: token.
 	^token.
 ]
