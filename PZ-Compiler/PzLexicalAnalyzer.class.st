@@ -60,7 +60,6 @@ PzLexicalAnalyzer class >> isIdentifier: aString [
 PzLexicalAnalyzer class >> isIncomplete: aString [
 	(aString isNil or: [aString isEmpty]) ifTrue: [^false].
 	aString first = $" ifTrue: [^aString size > 1 and: [aString last ~= $"]].
-	aString first = $/ ifTrue: [^true].
 	((aString beginsWith: '/*') and: [(self isBlockComment: aString) not]) ifTrue: [^true].
 	^false.
 ]
@@ -93,6 +92,7 @@ PzLexicalAnalyzer class >> isString: aString [
 
 { #category : #testing }
 PzLexicalAnalyzer class >> isValidToken: aString [
+	aString = '/*' ifTrue: [^true].
 	^(self classify: aString) ~= #invalid.
 ]
 
